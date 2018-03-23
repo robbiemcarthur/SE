@@ -80,7 +80,7 @@ public class MyCrawlerController {
 	                        System.out.println("Html length: " + html.length());	                        
 	                        System.out.println("Number of outgoing links: " + links.size());
 	                        System.out.println("Content Type: " + page.getContentType());	                       
-	                        //System.out.println("Page Content as test: " + text);	  
+	                        System.out.println("Page Content as test: " + text);	  
 	                        System.out.println("Page Content as html:\n" + html);
 	                        System.out.println("--------------------------------------------");
 	            		} 
@@ -96,7 +96,7 @@ public class MyCrawlerController {
 	                        System.out.println("Content Type: " + page.getContentType());	                       
 	                        System.out.println("Content:");	  
 	                        System.out.println(text);
-	                        //System.out.println(text.toString());
+	                        System.out.println(text.toString());
 	                        System.out.println("--------------------------------------------");
 	            		}
 	            	}	            	

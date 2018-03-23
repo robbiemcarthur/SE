@@ -1,0 +1,132 @@
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import edu.uci.ics.crawler4j.crawler.CrawlConfig;
+import edu.uci.ics.crawler4j.crawler.CrawlController;
+import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.fetcher.PageFetcher;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.parser.TextParseData;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
+import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import edu.uci.ics.crawler4j.url.WebURL;
+/**
+ * 
+ * @author Robbie McArthur - 2098323m
+ *
+ */
+
+class MyTest {
+	static CrawlConfig config;
+	static PageFetcher pageFetcher;
+	static RobotstxtConfig robotstxtConfig;
+	static RobotstxtServer robotstxtServer;
+	static CrawlController controller;
+	static List<Object> datas;
+	/**
+	 * Replicating module to be tested 'MyCrawlerController'
+	 */
+	@BeforeClass
+	public static void setUp() throws Exception {
+		String crawlStorageFolder = "data/";
+		int numberOfCrawlers = 1; 
+
+		config = new CrawlConfig();
+		config.setCrawlStorageFolder(crawlStorageFolder);
+		config.setIncludeBinaryContentInCrawling(false);
+		config.setMaxDepthOfCrawling(-1); 
+		config.setMaxOutgoingLinksToFollow(5000);
+		// instantiating crawler controller
+		pageFetcher = new PageFetcher(config);                            
+		robotstxtConfig = new RobotstxtConfig();
+		robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
+		controller = new CrawlController(config, pageFetcher, robotstxtServer);
+		controller.addSeed("http://www.dcs.gla.ac.uk/~bjorn/sem20172018/ae2public/Machine_learning.html");            
+		controller.start(MyCrawler.class, numberOfCrawlers); 
+		datas = controller.getCrawlersLocalData();
+	}
+
+/**
+ * The following test checks that the returned text is properly formatted,
+ * in this case specifically checking that there is capitalisation e.g. of names.
+ */
+	@Test
+	void testTextHasBeenFormattedCorrectly() {
+//		fail("formatted text test has failed");
+		boolean textFormatted = false;
+		for(Object data : datas) 
+		{
+			ArrayList<Page> pages = (ArrayList<Page>) data;
+			String text = "";
+			for(Page page : pages) 
+			{
+				if (page.getParseData() instanceof HtmlParseData) 
+				{
+					HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
+					text = htmlParseData.getText();
+				} 
+				else if (page.getParseData() instanceof TextParseData) 
+				{
+					TextParseData textParseData = (TextParseData) page.getParseData();
+					text = textParseData.getTextContent();
+				}
+				char[] characters = text.toCharArray();
+				for(char c : characters) 
+				{
+					if(Character.isUpperCase(c)) 
+					{
+						textFormatted = true;
+					}
+				}
+			}
+		}
+		assertTrue(textFormatted);
+	}
+	
+	/**
+	 * Tests that crawler will only crawl links with a valid URL i.e. startsWith()
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCrawlerCrawlsValidURLsOnly() throws Exception
+	{
+		boolean isValid = true;
+		for(Object data : datas) 
+		{
+			ArrayList<Page> pages = (ArrayList<Page>) data;
+			for(Page page : pages) 
+			{
+				if(page.getWebURL().getURL().startsWith("http://www.dcs.gla.ac.uk/~bjorn/sem20172018/ae2public/")) 
+				{
+					isValid = false;
+				}
+			}
+		}
+		assertTrue(isValid);
+	}
+	
+	/**
+	 * Tests that all web links are visited, total expected is 11
+	 * which is asserted against the actual web links visited via
+	 * test.size
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCrawlerVisitsAllWebLinks() throws Exception
+	{
+		ArrayList<Object> test = (ArrayList<Object>) datas.get(0);
+		assertEquals(11, test.size());
+	}
+	}
+
+
+
